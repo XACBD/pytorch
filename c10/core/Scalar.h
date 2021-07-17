@@ -9,6 +9,7 @@
 
 #include <c10/core/ScalarType.h>
 #include <c10/macros/Macros.h>
+#include <c10/util/Exception.h>
 #include <c10/util/Half.h>
 #include <c10/util/TypeCast.h>
 
@@ -184,6 +185,29 @@ class C10_API Scalar {
     c10::complex<double> z;
     v_t() {} // default constructor
   } v;
+};
+
+struct OptionalScalarRef {
+  OptionalScalarRef() : scalar_(nullptr) {}
+  OptionalScalarRef(const Scalar* scalar) : scalar_(scalar) {
+    TORCH_INTERNAL_ASSERT_DEBUG_ONLY(scalar_);
+  }
+
+  bool has_value() const {
+    return scalar_ != nullptr;
+  }
+
+  const Scalar& toScalar() const {
+    TORCH_INTERNAL_ASSERT_DEBUG_ONLY(scalar_);
+    return *scalar_;
+  }
+
+  operator bool() const {
+    return has_value();
+  }
+
+ private:
+  const Scalar* scalar_;
 };
 
 // define the scalar.to<int64_t>() specializations
